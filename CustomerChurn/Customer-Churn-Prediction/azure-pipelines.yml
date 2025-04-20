@@ -4,14 +4,15 @@ trigger:
       - main
 
 pool:
-  name: Default  # your self‑hosted agent
+  name: Default
 
 variables:
   imageName: customer-churn-prediction
   containerRegistry: docker-hub-connection
-  dockerfilePath: Dockerfile
-  buildContext: .
-  # dynamic tag: branch-buildID, plus always push “latest”
+  # <-- point here to the Dockerfile location
+  dockerfilePath: CustomerChurn/Customer-Churn-Prediction/Dockerfile
+  # <-- build context is the folder containing your source
+  buildContext: CustomerChurn/Customer-Churn-Prediction
   imageTag: '$(Build.SourceBranchName)-$(Build.BuildId)'
 
 steps:
@@ -29,7 +30,6 @@ steps:
       tags: |
         $(imageTag)
         latest
-      # enable registry-backed build cache
       cacheFrom: |
         type=registry,ref=$(containerRegistry)/$(imageName):cache
       cacheTo: |
