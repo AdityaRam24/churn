@@ -4,33 +4,33 @@ trigger:
       - main
 
 pool:
-  name: Default
+  name: Default  # your self‑hosted agent
 
 variables:
   imageName: customer-churn-prediction
+  imageRepo: adityaram24/$(imageName)
   containerRegistry: docker-hub-connection
-  # <-- point here to the Dockerfile location
   dockerfilePath: CustomerChurn/Customer-Churn-Prediction/Dockerfile
-  # <-- build context is the folder containing your source
   buildContext: CustomerChurn/Customer-Churn-Prediction
   imageTag: '$(Build.SourceBranchName)-$(Build.BuildId)'
 
 steps:
   - checkout: self
+    clean: true
 
   - task: Docker@2
-    displayName: Build + Push Docker Image
+    displayName: 'Build and Push Docker Image'
     timeoutInMinutes: 20
     inputs:
       command: buildAndPush
       containerRegistry: $(containerRegistry)
-      repository: $(imageName)
+      repository: $(imageRepo)
       dockerfile: $(dockerfilePath)
       buildContext: $(buildContext)
       tags: |
         $(imageTag)
         latest
       cacheFrom: |
-        type=registry,ref=$(containerRegistry)/$(imageName):cache
+        type=registry,ref=$(containerRegistry)/$(imageRepo):cache
       cacheTo: |
-        type=registry,ref=$(containerRegistry)/$(imageName):cache,mode=max
+        type=registry,ref=$(containerRegistry)/$(imageRepo):cache,mode=max
