@@ -1,25 +1,36 @@
 trigger:
-  - main
+  branches:
+    include:
+      - main
 
 pool:
-  name: Default  # ✅ your self-hosted agent name
+  name: Default  # your self‑hosted agent
 
 variables:
-  imageName: 'customer-churn-prediction'
-  containerRegistry: 'docker-hub-connection'
-  dockerfilePath: 'Dockerfile'
+  imageName: customer-churn-prediction
+  containerRegistry: docker-hub-connection
+  dockerfilePath: Dockerfile
+  buildContext: .
+  # dynamic tag: branch-buildID, plus always push “latest”
+  imageTag: '$(Build.SourceBranchName)-$(Build.BuildId)'
 
 steps:
-  # DockerInstaller step is not needed for self-hosted agent with Docker Desktop
-  # - task: DockerInstaller@0
-  #   displayName: 'Install Docker'
+  - checkout: self
 
   - task: Docker@2
-    displayName: 'Build and Push Docker image'
+    displayName: Build + Push Docker Image
+    timeoutInMinutes: 20
     inputs:
+      command: buildAndPush
       containerRegistry: $(containerRegistry)
       repository: $(imageName)
-      command: 'buildAndPush'
-      Dockerfile: $(dockerfilePath)
-      tags: 'latest'
-
+      dockerfile: $(dockerfilePath)
+      buildContext: $(buildContext)
+      tags: |
+        $(imageTag)
+        latest
+      # enable registry-backed build cache
+      cacheFrom: |
+        type=registry,ref=$(containerRegistry)/$(imageName):cache
+      cacheTo: |
+        type=registry,ref=$(containerRegistry)/$(imageName):cache,mode=max
