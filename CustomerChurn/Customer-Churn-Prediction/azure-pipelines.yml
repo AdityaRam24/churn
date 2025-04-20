@@ -1,1 +1,25 @@
+trigger:
+  - main
+
+pool:
+  name: Default  # ✅ your self-hosted agent name
+
+variables:
+  imageName: 'customer-churn-prediction'
+  containerRegistry: 'docker-hub-connection'
+  dockerfilePath: 'Dockerfile'
+
+steps:
+  # DockerInstaller step is not needed for self-hosted agent with Docker Desktop
+  # - task: DockerInstaller@0
+  #   displayName: 'Install Docker'
+
+  - task: Docker@2
+    displayName: 'Build and Push Docker image'
+    inputs:
+      containerRegistry: $(containerRegistry)
+      repository: $(imageName)
+      command: 'buildAndPush'
+      Dockerfile: $(dockerfilePath)
+      tags: 'latest'
 
