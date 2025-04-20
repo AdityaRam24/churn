@@ -3,44 +3,34 @@ trigger:
     include:
       - main
 
-pr:
-  branches:
-    include:
-      - main
-
 pool:
-  name: Default    # your self‑hosted agent pool
+  name: Default  # your self‑hosted agent
 
 variables:
-  # image settings
-  name: customer-churn-prediction
-  repo: adityaram24/$(name)
-  registry: docker-hub-connection
-
-  # Dockerfile & context
-  path: CustomerChurn/Customer-Churn-Prediction
-  file: $(path)/Dockerfile
-
-  # unique build tag
-  tag: $(Build.SourceBranchName)-$(Build.BuildId)
+  imageName: customer-churn-prediction
+  imageRepo: adityaram24/$(imageName)
+  containerRegistry: docker-hub-connection
+  dockerfilePath: CustomerChurn/Customer-Churn-Prediction/Dockerfile
+  buildContext: CustomerChurn/Customer-Churn-Prediction
+  imageTag: '$(Build.SourceBranchName)-$(Build.BuildId)'
 
 steps:
   - checkout: self
     clean: true
-    fetchDepth: 1
-    persistCredentials: true
 
   - task: Docker@2
-    displayName: Build & Push $(repo)
-    timeoutInMinutes: 10
+    displayName: 'Build and Push Docker Image'
+    timeoutInMinutes: 20
     inputs:
       command: buildAndPush
-      containerRegistry: $(registry)
-      repository: $(repo)
-      dockerfile: $(file)
-      buildContext: $(path)
+      containerRegistry: $(containerRegistry)
+      repository: $(imageRepo)
+      dockerfile: $(dockerfilePath)
+      buildContext: $(buildContext)
       tags: |
-        $(tag)
+        $(imageTag)
         latest
-      cacheFrom: type=registry,ref=$(registry)/$(repo):cache
-      cacheTo: type=registry,ref=$(registry)/$(repo):cache,mode=max
+      cacheFrom: |
+        type=registry,ref=$(containerRegistry)/$(imageRepo):cache
+      cacheTo: |
+        type=registry,ref=$(containerRegistry)/$(imageRepo):cache,mode=max  
